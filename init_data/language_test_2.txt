@@ -1,0 +1,21 @@
+{
+    "language": "ENG",
+    "test_type": 2,
+    "questions": [
+        {
+        "question": "___ is the monetary value of a good, service or resource established during a transaction.",
+        "answers": ["Cost", "Price", "Profit", "Worth"],
+        "right_answer": "Price"
+        },
+        {
+        "question": "A ___ is an area of land that has common features.",
+        "answers": ["state", "vicinity", "district", "region"],
+        "right_answer": "region"
+        },
+        {
+        "question": "His little ___ on the test cost him a perfect score.",
+        "answers": ["slip", "mistake", "error", "fault"],
+        "right_answer": "slip"
+        }
+    ]
+}
