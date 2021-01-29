@@ -83,8 +83,28 @@ def get_admin_ids() -> List[int]:
     return [int(i[0]) for i in _cursor.fetchall()]
 
 
+def _get_all_test_types(ids: bool = False) -> List[Union[int, Tuple]]:
+    _cursor.execute(
+        'SELECT id, type '
+        'FROM test_types'
+    )
+    if ids:
+        return [i[0] for i in _cursor.fetchall()]
+    return _cursor.fetchall()
+
+
 def _get_formatted_date(date: datetime) -> str:
     return date.strftime("%Y-%m-%d %H:%M:%S")
+
+
+def get_formatted_languages_list() -> str:
+    languages = _get_languages()
+    return '\n'.join(f'{code} - {name}' for _, code, name in languages)
+
+
+def get_formatted_test_types_list() -> str:
+    test_types = _get_all_test_types()
+    return '\n'.join(f'{id}. {type}' for id, type in test_types)
 
 
 def get_language_id(language: str, key: str = 'name') -> int:
@@ -95,6 +115,14 @@ def get_language_id(language: str, key: str = 'name') -> int:
         f'WHERE {key} = "{language}"'
     )
     return int(_cursor.fetchone()[0])
+
+
+def _get_languages() -> List[Tuple]:
+    _cursor.execute(
+        'SELECT id, code, name '
+        'FROM languages'
+    )
+    return _cursor.fetchall()
 
 
 def get_number_languages() -> int:

@@ -5,7 +5,11 @@ import pytest
 
 from core.db import (
     add_new_user,
+    _get_all_test_types,
     get_language_id,
+    _get_languages,
+    get_number_languages,
+    get_number_test_types,
     get_role_id,
     get_user_role,
     is_new_user,
@@ -39,6 +43,19 @@ def test_update_user_role():
 
 
 @pytest.mark.parametrize(
+    'flag, _type',
+    (
+        (True, int, ),
+        (False, tuple, ),
+    )
+)
+def test_get_all_test_types(flag, _type):
+    result = _get_all_test_types(flag)
+    assert all(isinstance(i, _type) for i in result)
+    assert len(result) == get_number_test_types()
+
+
+@pytest.mark.parametrize(
     'language, key, result',
     (
         ('Belarusian', 'name', 1),
@@ -47,6 +64,10 @@ def test_update_user_role():
 )
 def test_get_language_id(language, key, result):
     assert get_language_id(language, key) == result
+
+
+def test_get_languages():
+    assert len(_get_languages()) == get_number_languages()
 
 
 def test_get_role_id():

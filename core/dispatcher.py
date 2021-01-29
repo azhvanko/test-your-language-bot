@@ -6,6 +6,8 @@ from typing import Dict, Optional, Tuple
 from .config import COMMANDS
 from .db import (
     add_new_user,
+    get_formatted_languages_list,
+    get_formatted_test_types_list,
     get_user_role,
     is_new_user,
     update_user_role
@@ -45,7 +47,7 @@ class SessionsDispatcher:
             return self._handle_test_creator_commands(user_id, command, date)
 
         if command in COMMANDS['information_commands']:
-            return self._handle_information_commands(command)
+            return self._handle_information_commands(user_id, command)
 
         if command in COMMANDS['admin_commands']:
             return self._handle_admin_commands(user_id, command)
@@ -74,8 +76,13 @@ class SessionsDispatcher:
     def _handle_test_creator_commands(self, user_id: int, command: str, date: datetime):
         pass
 
-    def _handle_information_commands(self, command: str) -> Answer:
-        pass
+    def _handle_information_commands(self, user_id: int, command: str) -> Answer:
+        if get_user_role(user_id) == 'user':
+            return Answer(text=self._get_default_answer('unsupported_command'))
+        if command == 'languages_list':
+            return Answer(text=get_formatted_languages_list())
+        if command == 'test_types_list':
+            return Answer(text=get_formatted_test_types_list())
 
     def _handle_admin_commands(self, user_id: int, command: str) -> Answer:
         pass
