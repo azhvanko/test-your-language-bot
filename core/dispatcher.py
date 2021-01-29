@@ -4,6 +4,12 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple
 
 from .config import COMMANDS
+from .db import (
+    add_new_user,
+    get_user_role,
+    is_new_user,
+    update_user_role
+)
 from .types import Answer
 
 
@@ -52,7 +58,15 @@ class SessionsDispatcher:
     def _handle_start_commands(
             self, user_id: int, command: str, date: datetime, deep_link: Optional[str]
     ) -> Answer:
-        pass
+        if command == 'start':
+            if is_new_user(user_id):
+                add_new_user(user_id, date, deep_link)
+            else:
+                if deep_link is not None:
+                    update_user_role(user_id, date, deep_link)
+        self.close_session(user_id)
+        role = get_user_role(user_id)
+        return self._get_start_message(command, role)
 
     def _handle_user_commands(self, user_id: int, date: datetime):
         pass
@@ -68,6 +82,34 @@ class SessionsDispatcher:
 
     def _get_default_answer(self, key: str) -> str:
         return self._default_answers[key]
+
+    @staticmethod
+    def _get_start_message(command: str, role: str) -> Answer:
+        start_message = (
+            'С помощью этого бота вы сможете проверить ваши знания грамматики '
+            'и лексики иностранного языка.\n\n'
+        )
+        user_commands = 'Для того, чтобы начать тест, введите /begin_test.\n'
+        test_creator_commands = (
+            'Для того, чтобы получить список языков, введите /languages_list.\n'
+            'Для того, чтобы получить список доступных типов тестов, введите '
+            '/test_types_list.\nДля того, чтобы добавить вопросы, введите '
+            '/add_questions, чтобы обновить  - /update_questions, чтобы удалить '
+            '- /delete_questions.\n'
+        )
+        admin_commands = 'Для того, чтобы создать deeplink, введите /create_deep_link.'
+        if role == 'user':
+            text = user_commands
+        elif role == 'test_creator':
+            text = f'{user_commands}{test_creator_commands}'
+        else:
+            text = f'{user_commands}{test_creator_commands}{admin_commands}'
+        if command == 'start':
+            text = f'{start_message}{text}'
+        return Answer(text=text)
+
+    def close_session(self, session_id: int) -> None:
+        self._sessions.pop(session_id, None)
 
     @staticmethod
     def _is_bot_command(text: str) -> bool:
