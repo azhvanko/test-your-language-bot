@@ -13,6 +13,7 @@ from core.db import (
     get_role_id,
     get_user_role,
     is_new_user,
+    _is_valid_deep_link,
     normalize_question,
     _register_deep_link,
     update_user_role
@@ -34,12 +35,14 @@ def test_add_new_user(user_id, deep_link, final_role):
 
 
 def test_update_user_role():
-    user_id = 3
-    deep_link = str(uuid4())
+    user_id = 101
+    add_new_user(user_id, datetime.now(), None)
     assert get_user_role(user_id) == 'user'
+    deep_link = str(uuid4())
     _register_deep_link(1, deep_link, 'test_creator')
     update_user_role(user_id, datetime.now(), deep_link)
     assert get_user_role(user_id) == 'test_creator'
+    assert not _is_valid_deep_link(deep_link)
 
 
 @pytest.mark.parametrize(
