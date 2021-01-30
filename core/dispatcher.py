@@ -112,6 +112,7 @@ class SessionsDispatcher:
     @staticmethod
     def _get_start_message(command: str, role: str) -> Answer:
         start_message = (
+            'Привет!\n'
             'С помощью этого бота вы сможете проверить ваши знания грамматики '
             'и лексики иностранного языка.\n\n'
         )
@@ -144,11 +145,14 @@ class SessionsDispatcher:
         self._sessions[user_id] = handler.get_data_class(user_id, date)
         return self._sessions[user_id]
 
-    def close_session(self, session_id: int) -> None:
-        self._sessions.pop(session_id, None)
+    def close_session(self, user_id: int) -> None:
+        self._sessions.pop(user_id, None)
 
     def register_handlers(self, *args) -> None:
         for handler in args:
+            if not isinstance(handler, SessionHandler):
+                raise KeyError('Все аргументы д. б. подклассами класса '
+                               '"SessionHandler"')
             self._handlers[handler.alias] = handler
 
     def _get_handler(self, handler_alias: str) -> SessionHandler:
