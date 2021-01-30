@@ -1,7 +1,7 @@
 import io
 import re
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, Union
 
 from .config import COMMANDS
 from .db import (
@@ -14,7 +14,11 @@ from .db import (
     update_user_role
 )
 from .handlers import SessionHandler
-from .types import Answer
+from .types import Answer, CloseSession, Session
+
+
+class UnclosedSessionError(Exception):
+    pass
 
 
 class SessionsDispatcher:
@@ -72,8 +76,16 @@ class SessionsDispatcher:
         role = get_user_role(user_id)
         return self._get_start_message(command, role)
 
-    def _handle_user_commands(self, user_id: int, date: datetime):
-        pass
+    def _handle_user_commands(
+            self, user_id: int, date: datetime
+    ) -> Union[Answer, Tuple[Answer, CloseSession]]:
+        handler_alias = 'user_session_handler'
+        handler = self._get_handler(handler_alias)
+        try:
+            session = self._create_session(user_id, date, handler)
+        except UnclosedSessionError as e:
+            return Answer(text=str(e))
+        return handler.handle_session(session)
 
     def _handle_test_creator_commands(self, user_id: int, command: str, date: datetime):
         pass
@@ -122,13 +134,23 @@ class SessionsDispatcher:
             text = f'{start_message}{text}'
         return Answer(text=text)
 
+    def _create_session(
+            self, user_id: int, date: datetime, handler: SessionHandler
+    ) -> Session:
+        if user_id in self._sessions:
+            raise UnclosedSessionError(
+                'Вы должны завершить предыдущую сессию.\n Введите команду '
+                '/reset, если хотите начать сначала.')
+        self._sessions[user_id] = handler.get_data_class(user_id, date)
+        return self._sessions[user_id]
+
     def close_session(self, session_id: int) -> None:
         self._sessions.pop(session_id, None)
 
     def register_handlers(self, *args) -> None:
         for handler in args:
             self._handlers[handler.alias] = handler
-    
+
     def _get_handler(self, handler_alias: str) -> SessionHandler:
         return self._handlers[handler_alias]
 
