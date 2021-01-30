@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 from .config import COMMANDS
 from .db import (
     add_new_user,
+    create_deep_link,
     get_formatted_languages_list,
     get_formatted_test_types_list,
     get_user_role,
@@ -85,7 +86,12 @@ class SessionsDispatcher:
             return Answer(text=get_formatted_test_types_list())
 
     def _handle_admin_commands(self, user_id: int, command: str) -> Answer:
-        pass
+        user_role = get_user_role(user_id)
+        if user_role != 'admin':
+            return Answer(text=self._get_default_answer('unsupported_command'))
+        if command == 'create_deep_link':
+            deep_link = create_deep_link(user_id)
+            return Answer(text=f'Ссылка успешно создана.\n{deep_link}')
 
     def _get_default_answer(self, key: str) -> str:
         return self._default_answers[key]

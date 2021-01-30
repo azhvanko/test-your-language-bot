@@ -1,10 +1,11 @@
 import os.path
 import re
 import sqlite3
+import uuid
 from datetime import datetime
 from typing import List, Dict, Optional, Sequence, Tuple, Union
 
-from .config import DB_DIR
+from .config import BOT_NAME, DB_DIR
 
 
 _connection: Optional[sqlite3.Connection] = None
@@ -44,6 +45,12 @@ def add_new_user(user_id: int, date: datetime, deep_link: Optional[str]) -> None
     role_id = get_role_id(user_role)
     joined = _get_formatted_date(date)
     insert_user([(user_id, role_id, joined), ])
+
+
+def create_deep_link(user_id: int, role: str = 'test_creator') -> str:
+    deep_link = str(uuid.uuid4())
+    _register_deep_link(user_id, deep_link, role)
+    return f'https://t.me/{BOT_NAME}?start={deep_link}'
 
 
 def execute_script(script: str) -> None:
