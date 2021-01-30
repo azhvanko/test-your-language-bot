@@ -13,6 +13,7 @@ from .db import (
     is_new_user,
     update_user_role
 )
+from .handlers import SessionHandler
 from .types import Answer
 
 
@@ -123,6 +124,13 @@ class SessionsDispatcher:
 
     def close_session(self, session_id: int) -> None:
         self._sessions.pop(session_id, None)
+
+    def register_handlers(self, *args) -> None:
+        for handler in args:
+            self._handlers[handler.alias] = handler
+    
+    def _get_handler(self, handler_alias: str) -> SessionHandler:
+        return self._handlers[handler_alias]
 
     @staticmethod
     def _is_bot_command(text: str) -> bool:
