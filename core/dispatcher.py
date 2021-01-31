@@ -28,6 +28,8 @@ class SessionsDispatcher:
         self._handlers = {}
         self._sessions = {}
         self._default_answers: Dict[str, str] = {
+            'invalid_message': ('Для начала работы с ботом используйте одну из '
+                                'доступных команд'),
             'unsupported_command': 'Данная команда не поддерживается',
         }
 
@@ -61,7 +63,11 @@ class SessionsDispatcher:
         return Answer(text=self._get_default_answer('unsupported_command'))
 
     def _handle_text(self, user_id: int, text: str):
-        pass
+        if user_id in self._sessions:
+            handler_alias = self._sessions[user_id].handler_alias
+            handler = self._get_handler(handler_alias)
+            return handler.handle_session(self._sessions[user_id], message=text)
+        return Answer(text=self._get_default_answer('invalid_message'))
 
     def _handle_start_commands(
             self, user_id: int, command: str, date: datetime, deep_link: Optional[str]
