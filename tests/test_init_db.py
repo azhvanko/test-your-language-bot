@@ -6,10 +6,16 @@ from core.db import (
     get_number_tables,
     get_number_test_types
 )
+from core.init_db import _get_files_list
 
 
 def test_admin_ids():
     assert len(get_admin_ids()) > 0
+
+
+def test_get_files_list():
+    files = _get_files_list()
+    assert files == ['language_test_1.txt', 'language_test_2.txt']
 
 
 def test_init_db():
