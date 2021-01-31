@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
+
+from .language_test import LanguageTest
 
 
 @dataclass
@@ -12,7 +15,9 @@ class Session:
 
 @dataclass
 class UserSession(Session):
-    pass
+    language_id: Optional[int] = None
+    test_type_id: Optional[int] = None
+    language_test: Optional[LanguageTest] = None
 
 
 @dataclass
