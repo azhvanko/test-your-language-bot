@@ -5,14 +5,22 @@ import pytest
 
 from core.db import (
     add_new_user,
+    _generate_language_test,
     _get_all_test_types,
+    get_current_languages,
     get_language_id,
+    get_language_test,
     _get_languages,
     get_number_languages,
     get_number_test_types,
     get_role_id,
+    get_test_type_id,
+    get_test_types,
+    _get_user_answers,
     get_user_role,
     is_new_user,
+    is_supported_language,
+    is_supported_test_type,
     _is_valid_deep_link,
     normalize_question,
     _register_deep_link,
@@ -46,6 +54,31 @@ def test_update_user_role():
 
 
 @pytest.mark.parametrize(
+    'ids, eq, result',
+    (
+        (
+            [1, 2],
+            True,
+            [
+                (1, "The moon wouldn't ___ so beautiful.", 'have looked\nhave been looking\nlook\nam looking', 0),
+                (2, 'He must ___ all along.', 'have been knowing\nare knowing\nknow\nhave known', 3),
+            ],
+        ),
+        (
+            [1, 2],
+            False,
+            [
+                (3, 'They seem ___ by some kind of an instrument.', 'to make\nto have been made\nto have made\nto be made', 1),
+            ],
+        ),
+    )
+)
+def test_generate_language_test(ids, eq, result):
+    language_test = _generate_language_test(10, 1, 4, 10, ids, eq)
+    assert sorted(language_test, key=lambda x: x[0]) == result
+
+
+@pytest.mark.parametrize(
     'flag, _type',
     (
         (True, int, ),
@@ -56,6 +89,10 @@ def test_get_all_test_types(flag, _type):
     result = _get_all_test_types(flag)
     assert all(isinstance(i, _type) for i in result)
     assert len(result) == get_number_test_types()
+
+
+def test_get_current_languages():
+    assert get_current_languages() == ['English', ]
 
 
 @pytest.mark.parametrize(
@@ -69,6 +106,16 @@ def test_get_language_id(language, key, result):
     assert get_language_id(language, key) == result
 
 
+def test_get_language_test():
+    language_test = get_language_test(1, 10, 1, 4, 10)
+    result = [
+        (1, "The moon wouldn't ___ so beautiful.", 'have looked\nhave been looking\nlook\nam looking', 0),
+        (2, 'He must ___ all along.', 'have been knowing\nare knowing\nknow\nhave known', 3),
+        (3, 'They seem ___ by some kind of an instrument.', 'to make\nto have been made\nto have made\nto be made', 1),
+    ]
+    assert sorted(language_test, key=lambda x: x[0]) == result
+
+
 def test_get_languages():
     assert len(_get_languages()) == get_number_languages()
 
@@ -80,6 +127,33 @@ def test_get_role_id():
     )
 
 
+def test_get_test_type_id():
+    result = get_test_type_id('Тест по грамматике.')
+    assert result == 1
+
+
+def test_get_test_types():
+    result = ['Тест по грамматике.', 'Тест по существительным.', ]
+    assert get_test_types('English') == result
+    assert get_test_types(get_language_id('English')) == result
+
+
+@pytest.mark.parametrize(
+    'user_id, language_id, test_type_id, number_answers, eq, result',
+    (
+        (1, 10, 1, 4, True, [1, 2, ]),
+        (1, 10, 1, 4, False, [3, ]),
+        (2, 10, 1, 4, True, []),
+        (2, 10, 1, 4, False, [1, 2, 3, ]),
+    )
+)
+def test_get_user_answers(
+        user_id, language_id, test_type_id, number_answers, eq, result
+):
+    answers = _get_user_answers(user_id, language_id, test_type_id, number_answers, eq)
+    assert answers == result
+
+
 def test_get_user_role():
     assert get_user_role(1, 'role') == 'admin'
     assert get_user_role(1, 'id') == 1
@@ -88,6 +162,33 @@ def test_get_user_role():
 def test_is_new_user():
     assert not all(is_new_user(i) for i in range(1, 4))
     assert is_new_user(1234567890)
+
+
+@pytest.mark.parametrize(
+    'language, key, result',
+    (
+        ('English', 'name', True),
+        ('ENG', 'code', True),
+        ('English', 'code', False),
+        ('ENG', 'name', False),
+        ('Latin', 'name', False),
+    )
+)
+def test_is_supported_language(language, key, result):
+    assert is_supported_language(language, key) == result
+
+
+@pytest.mark.parametrize(
+    'test_type, result',
+    (
+        ('Тест по грамматике.', True),
+        ('тест по грамматике.', True),
+        ('1', False),
+        ('Грамматика', False),
+    )
+)
+def test_is_supported_test_type(test_type, result):
+    assert is_supported_test_type(test_type) == result
 
 
 @pytest.mark.parametrize(
