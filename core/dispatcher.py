@@ -33,7 +33,9 @@ class SessionsDispatcher:
             'unsupported_command': 'Данная команда не поддерживается',
         }
 
-    def handle_text_message(self, user_id: int, text: str, date: datetime):
+    def handle_text_message(
+            self, user_id: int, text: str, date: datetime
+    ) -> Union[Answer, Tuple[Answer, Answer], Tuple[Answer, CloseSession]]:
         if self._is_bot_command(text):
             return self._handle_command(user_id, text, date)
         else:
@@ -42,7 +44,9 @@ class SessionsDispatcher:
     def handle_document(self, user_id: int, document: io.BytesIO):
         pass
 
-    def _handle_command(self, user_id: int, text: str, date: datetime):
+    def _handle_command(
+            self, user_id: int, text: str, date: datetime
+    ) -> Union[Answer, Tuple[Answer, Answer]]:
         command, deep_link = self._get_bot_command(text)
 
         if command in COMMANDS['start_commands']:
@@ -62,7 +66,9 @@ class SessionsDispatcher:
 
         return Answer(text=self._get_default_answer('unsupported_command'))
 
-    def _handle_text(self, user_id: int, text: str):
+    def _handle_text(
+            self, user_id: int, text: str
+    ) -> Union[Answer, Tuple[Answer, Answer], Tuple[Answer, CloseSession]]:
         if user_id in self._sessions:
             handler_alias = self._sessions[user_id].handler_alias
             handler = self._get_handler(handler_alias)
@@ -84,7 +90,7 @@ class SessionsDispatcher:
 
     def _handle_user_commands(
             self, user_id: int, date: datetime
-    ) -> Union[Answer, Tuple[Answer, CloseSession]]:
+    ) -> Answer:
         handler_alias = 'user_session_handler'
         handler = self._get_handler(handler_alias)
         try:
