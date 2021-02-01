@@ -35,7 +35,7 @@ class SessionHandler(ABC):
             self,
             session: Session,
             message: Optional[Union[str, io.BytesIO]] = None
-    ) -> Union[Answer, Tuple[Answer, CloseSession]]:
+    ) -> Union[Answer, Tuple[Answer, Answer], Tuple[Answer, CloseSession]]:
         func = self._get_step_handler(session.current_step)
         return func(session, message)
 
