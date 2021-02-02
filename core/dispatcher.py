@@ -41,8 +41,14 @@ class SessionsDispatcher:
         else:
             return self._handle_text(user_id, text)
 
-    def handle_document(self, user_id: int, document: io.BytesIO):
-        pass
+    def handle_document(
+            self, user_id: int, document: io.BytesIO
+    ) -> Union[Answer, Tuple[Answer, CloseSession]]:
+        if user_id in self._sessions:
+            handler_alias = self._sessions[user_id].handler_alias
+            handler = self._get_handler(handler_alias)
+            return handler.handle_session(self._sessions[user_id], message=document)
+        return Answer(text=self._get_default_answer('invalid_message'))
 
     def _handle_command(
             self, user_id: int, text: str, date: datetime
@@ -56,7 +62,7 @@ class SessionsDispatcher:
             return self._handle_user_commands(user_id, date)
 
         if command in COMMANDS['test_creator_commands']:
-            return self._handle_test_creator_commands(user_id, command, date)
+            return self._handle_language_test_creator_commands(user_id, command, date)
 
         if command in COMMANDS['information_commands']:
             return self._handle_information_commands(user_id, command)
@@ -99,8 +105,20 @@ class SessionsDispatcher:
             return Answer(text=str(e))
         return handler.handle_session(session)
 
-    def _handle_test_creator_commands(self, user_id: int, command: str, date: datetime):
-        pass
+    def _handle_language_test_creator_commands(
+            self, user_id: int, command: str, date: datetime
+    ) -> Union[Answer, Tuple[Answer, CloseSession]]:
+        handler_alias = 'language_test_creator_session_handler'
+        user_role = get_user_role(user_id)
+        if user_role == 'user':
+            return Answer(text=self._get_default_answer('unsupported_command'))
+        handler = self._get_handler(handler_alias)
+        handler.alias = handler_alias
+        try:
+            session = self._create_session(user_id, date, handler)
+        except UnclosedSessionError as e:
+            return Answer(text=str(e))
+        return handler.handle_session(session, command)
 
     def _handle_information_commands(self, user_id: int, command: str) -> Answer:
         if get_user_role(user_id) == 'user':

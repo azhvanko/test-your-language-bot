@@ -1,2 +1,3 @@
 from .base import SessionHandler
+from .language_test_creator_session_handler import language_test_creator_session_handler
 from .user_session_handler import user_session_handler
