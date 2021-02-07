@@ -22,7 +22,7 @@ class UserSession(Session):
 
 @dataclass
 class LanguageTestCreatorSession(Session):
-    pass
+    command: Optional[str] = None
 
 
 class CloseSession:
