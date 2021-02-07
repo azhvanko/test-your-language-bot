@@ -21,7 +21,7 @@ class UserSession(Session):
 
 
 @dataclass
-class TestCreatorSession(Session):
+class LanguageTestCreatorSession(Session):
     pass
 
 

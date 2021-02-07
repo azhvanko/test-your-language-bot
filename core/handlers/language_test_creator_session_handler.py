@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Tuple
 
 from core.handlers import SessionHandler
-from core.types import TestCreatorSession
+from core.types import LanguageTestCreatorSession
 
 
 class LanguageTestCreatorSessionHandler(SessionHandler):
@@ -10,8 +10,12 @@ class LanguageTestCreatorSessionHandler(SessionHandler):
     def __init__(self, alias: str, steps: Tuple[str, ...]):
         super().__init__(alias, steps)
 
-    def get_data_class(self, user_id: int, date: datetime) -> TestCreatorSession:
-        return TestCreatorSession(handler_alias=self.alias, user_id=user_id, created=date)
+    def get_data_class(
+            self, user_id: int, date: datetime
+    ) -> LanguageTestCreatorSession:
+        return LanguageTestCreatorSession(
+            handler_alias=self.alias, user_id=user_id, created=date
+        )
 
 
 language_test_creator_session_handler = LanguageTestCreatorSessionHandler(
