@@ -5,8 +5,8 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Optional, Sequence, Tuple, Union
 
-from .config import BOT_NAME, DB_DIR
-from .types import LanguageTest
+from core.config import BOT_NAME, DB_DIR
+from core.types import LanguageTest
 
 
 _connection: Optional[sqlite3.Connection] = None
@@ -116,7 +116,8 @@ def generate_questions_values(
                 language_id,
                 test_type_id,
                 _question,
-                '\n'.join(answer.replace('\n', '').strip() for answer in question['answers']),
+                '\n'.join(answer.replace('\n', '').strip()
+                          for answer in question['answers']),
                 len(question['answers']),
                 question['answers'].index(question['right_answer']),
             )
@@ -133,7 +134,26 @@ def get_admin_ids() -> List[int]:
     return [int(i[0]) for i in _cursor.fetchall()]
 
 
-def _get_all_test_types(ids: bool = False) -> List[Union[int, Tuple]]:
+def get_all_languages(key: Optional[str] = None) -> List[Tuple]:
+    key = key or 'id, code, name'
+    _cursor.execute(
+        f'SELECT {key} '
+        f'FROM languages'
+    )
+    return _cursor.fetchall()
+
+
+def get_all_questions(user_id: int) -> Dict[str, int]:
+    condition = f'WHERE user_id = {user_id}' if user_id > 0 else ''
+    _cursor.execute(
+        f'SELECT question, id '
+        f'FROM questions '
+        f'{condition}'
+    )
+    return {i[0]: i[1] for i in _cursor.fetchall()}
+
+
+def get_all_test_types(ids: bool = False) -> List[Union[int, Tuple]]:
     _cursor.execute(
         'SELECT id, type '
         'FROM test_types'
@@ -158,13 +178,13 @@ def _get_formatted_date(date: datetime) -> str:
 
 
 def get_formatted_languages_list() -> str:
-    languages = _get_languages()
-    return '\n'.join(f'{code} - {name}' for _, code, name in languages)
+    all_languages = get_all_languages()
+    return '\n'.join(f'{code} - {name}' for _, code, name in all_languages)
 
 
 def get_formatted_test_types_list() -> str:
-    test_types = _get_all_test_types()
-    return '\n'.join(f'{id}. {type}' for id, type in test_types)
+    all_test_types = get_all_test_types()
+    return '\n'.join(f'{_id}. {_type}' for _id, _type in all_test_types)
 
 
 def get_language_id(language: str, key: str = 'name') -> int:
@@ -197,14 +217,6 @@ def get_language_test(
         )
         questions.extend(_questions)
     return questions
-
-
-def _get_languages() -> List[Tuple]:
-    _cursor.execute(
-        'SELECT id, code, name '
-        'FROM languages'
-    )
-    return _cursor.fetchall()
 
 
 def get_number_languages() -> int:

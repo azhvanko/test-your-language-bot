@@ -6,11 +6,12 @@ import pytest
 from core.db import (
     add_new_user,
     _generate_language_test,
-    _get_all_test_types,
+    get_all_languages,
+    get_all_questions,
+    get_all_test_types,
     get_current_languages,
     get_language_id,
     get_language_test,
-    _get_languages,
     get_number_languages,
     get_number_test_types,
     get_role_id,
@@ -78,6 +79,14 @@ def test_generate_language_test(ids, eq, result):
     assert sorted(language_test, key=lambda x: x[0]) == result
 
 
+def test_get_all_languages():
+    assert len(get_all_languages()) == get_number_languages()
+
+
+def test_get_all_questions():
+    assert get_all_questions(1)
+
+
 @pytest.mark.parametrize(
     'flag, _type',
     (
@@ -86,7 +95,7 @@ def test_generate_language_test(ids, eq, result):
     )
 )
 def test_get_all_test_types(flag, _type):
-    result = _get_all_test_types(flag)
+    result = get_all_test_types(flag)
     assert all(isinstance(i, _type) for i in result)
     assert len(result) == get_number_test_types()
 
@@ -114,10 +123,6 @@ def test_get_language_test():
         (3, 'They seem ___ by some kind of an instrument.', 'to make\nto have been made\nto have made\nto be made', 1),
     ]
     assert sorted(language_test, key=lambda x: x[0]) == result
-
-
-def test_get_languages():
-    assert len(_get_languages()) == get_number_languages()
 
 
 def test_get_role_id():
