@@ -46,26 +46,14 @@ def test_add_new_user(user_id, deep_link, final_role):
     assert get_user_role(user_id) == final_role
 
 
-def test_delete_questions():
-    new_question = {
-        'language': 'ENG',
-        'test_type': 1,
-        'questions': [
-            {
-                'question': 'Jack is in his garage. He must ___ his car.',
-                'answers': ['be repairing', 'have been repairing', 'have repaired', 'repair'],
-                'right_answer': 'be repairing'
-            },
-        ]
-    }
-    language_id = get_language_id(new_question['language'], 'code')
+def test_delete_questions(random_language_test):
+    language_id = get_language_id(random_language_test['language'], 'code')
     values = generate_questions_values(
-        1, language_id, new_question['language'], new_question['questions']
+        1, language_id, random_language_test['language'], random_language_test['questions']
     )
-    question = new_question['questions'][0]['question']
+    question = random_language_test['questions'][0]['question']
     insert_questions(values)
     all_questions = get_all_questions(1)
-    assert question in all_questions
     delete_questions([all_questions[question], ])
     assert question not in get_all_questions(1)
 
