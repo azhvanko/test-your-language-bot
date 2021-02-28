@@ -1,10 +1,11 @@
+import asyncio
 import io
 import re
 from datetime import datetime
 from typing import Dict, Optional, Tuple, Union
 
-from .config import COMMANDS
-from .db import (
+from core.config import COMMANDS
+from core.db import (
     add_new_user,
     create_deep_link,
     get_formatted_languages_list,
@@ -13,8 +14,8 @@ from .db import (
     is_new_user,
     update_user_role
 )
-from .handlers import SessionHandler
-from .types import Answer, CloseSession, Session
+from core.handlers import SessionHandler
+from core.types import Answer, CloseSession, Session
 
 
 class UnclosedSessionError(Exception):
@@ -28,8 +29,9 @@ class SessionsDispatcher:
         self._handlers = {}
         self._sessions = {}
         self._default_answers: Dict[str, str] = {
-            'invalid_message': ('Для начала работы с ботом используйте одну из '
-                                'доступных команд'),
+            'invalid_message': (
+                'Для начала работы с ботом используйте одну из доступных команд'
+            ),
             'unsupported_command': 'Данная команда не поддерживается',
         }
 
@@ -178,6 +180,20 @@ class SessionsDispatcher:
     def close_session(self, user_id: int) -> None:
         self._sessions.pop(user_id, None)
 
+    async def close_old_sessions(self) -> None:
+        time_limit = 1800  # 30 min
+        while True:
+            await asyncio.sleep(time_limit / 3)
+            current_time = self._get_now_datetime()
+
+            close_list = set()
+            for chat_id, session in self._sessions.items():
+                if (current_time - session.created).total_seconds() > time_limit:
+                    close_list.add(chat_id)
+
+            for chat_id in close_list:
+                self.close_session(chat_id)
+
     def register_handlers(self, *args) -> None:
         for handler in args:
             if not isinstance(handler, SessionHandler):
@@ -208,3 +224,7 @@ class SessionsDispatcher:
         else:
             deep_link = None
         return (command, deep_link)
+
+    @staticmethod
+    def _get_now_datetime() -> datetime:
+        return datetime.now()
