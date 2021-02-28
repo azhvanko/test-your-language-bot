@@ -54,19 +54,31 @@ def create_deep_link(user_id: int, role: str = 'test_creator') -> str:
     return f'https://t.me/{BOT_NAME}?start={deep_link}'
 
 
+def delete_questions(question_ids: List[int]) -> None:
+    question_ids = ', '.join(str(i) for i in question_ids)
+    _cursor.execute(
+        f'DELETE FROM questions '
+        f'WHERE id IN ({question_ids})'
+    )
+    _connection.commit()
+
+
 def execute_script(script: str) -> None:
     _cursor.executescript(script)
     _connection.commit()
 
 
 def generate_answer_values(
-        user_id: int, language_test: LanguageTest
+        user_id: int,
+        language_test: LanguageTest
 ) -> List[Tuple]:
     values = [
-        (user_id,
-         language_test.questions[index].question_id,
-         language_test.questions[index].get_answer_index(answer),
-         _get_formatted_date(datetime.now()))
+        (
+            user_id,
+            language_test.questions[index].question_id,
+            language_test.questions[index].get_answer_index(answer),
+            _get_formatted_date(datetime.now())
+        )
         for index, answer in enumerate(language_test.user_answers)
     ]
     return values

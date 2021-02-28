@@ -5,7 +5,9 @@ import pytest
 
 from core.db import (
     add_new_user,
+    delete_questions,
     _generate_language_test,
+    generate_questions_values,
     get_all_languages,
     get_all_questions,
     get_all_test_types,
@@ -19,6 +21,7 @@ from core.db import (
     get_test_types,
     _get_user_answers,
     get_user_role,
+    insert_questions,
     is_new_user,
     is_supported_language,
     is_supported_test_type,
@@ -43,15 +46,28 @@ def test_add_new_user(user_id, deep_link, final_role):
     assert get_user_role(user_id) == final_role
 
 
-def test_update_user_role():
-    user_id = 101
-    add_new_user(user_id, datetime.now(), None)
-    assert get_user_role(user_id) == 'user'
-    deep_link = str(uuid4())
-    _register_deep_link(1, deep_link, 'test_creator')
-    update_user_role(user_id, datetime.now(), deep_link)
-    assert get_user_role(user_id) == 'test_creator'
-    assert not _is_valid_deep_link(deep_link)
+def test_delete_questions():
+    new_question = {
+        'language': 'ENG',
+        'test_type': 1,
+        'questions': [
+            {
+                'question': 'Jack is in his garage. He must ___ his car.',
+                'answers': ['be repairing', 'have been repairing', 'have repaired', 'repair'],
+                'right_answer': 'be repairing'
+            },
+        ]
+    }
+    language_id = get_language_id(new_question['language'], 'code')
+    values = generate_questions_values(
+        1, language_id, new_question['language'], new_question['questions']
+    )
+    question = new_question['questions'][0]['question']
+    insert_questions(values)
+    all_questions = get_all_questions(1)
+    assert question in all_questions
+    delete_questions([all_questions[question], ])
+    assert question not in get_all_questions(1)
 
 
 @pytest.mark.parametrize(
@@ -207,3 +223,14 @@ def test_is_supported_test_type(test_type, result):
 )
 def test_normalize_question(question, result):
     assert normalize_question(question) == result
+
+
+def test_update_user_role():
+    user_id = 101
+    add_new_user(user_id, datetime.now(), None)
+    assert get_user_role(user_id) == 'user'
+    deep_link = str(uuid4())
+    _register_deep_link(1, deep_link, 'test_creator')
+    update_user_role(user_id, datetime.now(), deep_link)
+    assert get_user_role(user_id) == 'test_creator'
+    assert not _is_valid_deep_link(deep_link)
