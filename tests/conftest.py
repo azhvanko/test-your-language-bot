@@ -1,3 +1,6 @@
+import random
+import string
+
 import pytest
 
 from core.db import (
@@ -10,7 +13,10 @@ from core.init_db import (
     _init_db,
     _insert_data
 )
-from core.handlers import user_session_handler as _user_session_handler
+from core.handlers import (
+    user_session_handler as _user_session_handler,
+    language_test_creator_session_handler as _language_test_creator_session_handler
+)
 
 
 def _insert_test_data() -> None:
@@ -40,15 +46,42 @@ def db(tmpdir_factory):
     close_connection()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='session', autouse=True)
 def dispatcher():
     sd = SessionsDispatcher()
     sd.register_handlers(
         _user_session_handler,
+        _language_test_creator_session_handler,
     )
     return sd
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='session', autouse=True)
 def user_session_handler():
     return _user_session_handler
+
+
+@pytest.fixture(scope='session', autouse=True)
+def language_test_creator_session_handler():
+    return _language_test_creator_session_handler
+
+
+@pytest.fixture(scope='function')
+def random_language_test():
+    question = f'{_get_random_ascii_string()} ___ {_get_random_ascii_string()}.'
+    language_test = {
+        'language': 'ENG',
+        'test_type': 1,
+        'questions': [
+            {
+                'question': question,
+                'answers': ['answer1', 'answer2', 'answer3', 'answer4'],
+                'right_answer': 'answer1'
+            },
+        ]
+    }
+    return language_test
+
+
+def _get_random_ascii_string(length: int = 16) -> str:
+    return ''.join(random.choice(string.ascii_letters) for _ in range(length))
