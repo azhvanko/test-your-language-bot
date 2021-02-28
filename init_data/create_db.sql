@@ -29,7 +29,8 @@ CREATE TABLE questions (
     user_id        INTEGER       REFERENCES users (id) ON DELETE CASCADE,
     language_id    INTEGER       REFERENCES languages (id),
     test_type_id   INTEGER       REFERENCES test_types (id),
-    question       VARCHAR (255) NOT NULL,
+    question       VARCHAR (255) UNIQUE
+                                 NOT NULL,
     answers        VARCHAR (255) NOT NULL,
     number_answers INTEGER       NOT NULL,
     right_answer   INTEGER       NOT NULL
