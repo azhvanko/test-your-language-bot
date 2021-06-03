@@ -1,5 +1,4 @@
 # test-your-language-bot
-Example - [@test_your_language_bot](https://t.me/test_your_language_bot)
 
 ## Usage
 
